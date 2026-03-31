@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Taj Collection</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+<script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+
+<style>
+body { margin:0; font-family:'Poppins', sans-serif; background:#f5f5f5; }
+
+/* Header */
+header {
+  background:#000;
+  color:#fff;
+  padding:15px;
+  text-align:center;
+}
+
+/* Hero */
+.hero {
+  background:url('https://i.ibb.co/vpvm4wp/IMG-20260330-223058.jpg') center/cover;
+  height:90vh;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  color:#fff;
+  text-align:center;
+}
+.hero h1 { font-size:40px; margin-bottom:10px; }
+
+/* Button */
+.btn {
+  background:#ff6b00;
+  padding:12px 20px;
+  color:#fff;
+  border:none;
+  cursor:pointer;
+  border-radius:5px;
+}
+
+/* Products */
+.products {
+  padding:20px;
+  display:flex;
+  overflow-x:auto;
+  gap:15px;
+}
+.card {
+  min-width:250px;
+  background:#fff;
+  padding:15px;
+  border-radius:10px;
+  box-shadow:0 4px 10px rgba(0,0,0,0.1);
+}
+.card img {
+  width:100%;
+  border-radius:10px;
+}
+
+/* Cart Button */
+.cart-btn {
+  position:fixed;
+  top:20px;
+  right:20px;
+  background:#000;
+  color:#fff;
+  padding:12px;
+  border-radius:50%;
+  cursor:pointer;
+}
+
+/* Cart Drawer */
+.cart {
+  position:fixed;
+  right:-100%;
+  top:0;
+  width:300px;
+  height:100%;
+  background:#fff;
+  box-shadow:-2px 0 10px rgba(0,0,0,0.2);
+  padding:20px;
+  transition:0.3s;
+  overflow:auto;
+}
+.cart.active { right:0; }
+
+/* WhatsApp Button */
+.whatsapp {
+  position:fixed;
+  bottom:20px;
+  right:20px;
+  background:#25D366;
+  color:#fff;
+  padding:15px;
+  border-radius:50%;
+  text-decoration:none;
+  font-size:20px;
+}
+
+/* Inputs */
+input {
+  width:100%;
+  padding:10px;
+  margin:5px 0;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+<h2>Taj Collection</h2>
+<p>Fresh Finds, Best Prices</p>
+</header>
+
+<!-- Hero -->
+<div class="hero">
+<h1>Upgrade Your Style</h1>
+<button class="btn" onclick="scrollToProducts()">Shop Now</button>
+</div>
+
+<!-- Products -->
+<div id="products" class="products"></div>
+
+<!-- Cart Icon -->
+<div class="cart-btn" onclick="toggleCart()">🛒 <span id="count">0</span></div>
+
+<!-- Cart -->
+<div class="cart" id="cart">
+<h3>Your Cart</h3>
+<ul id="cartItems"></ul>
+<h4>Total: ₹<span id="total">0</span></h4>
+
+<h4>Customer Details</h4>
+<input type="text" id="name" placeholder="Your Name">
+<input type="text" id="phone" placeholder="Phone Number">
+
+<button class="btn" onclick="sendOrder()">Send Order</button>
+</div>
+
+<!-- WhatsApp -->
+<a class="whatsapp" href="https://wa.me/9370640972" target="_blank">💬</a>
+
+<script>
+// EmailJS init (PUT YOUR KEY)
+(function(){
+  emailjs.init("YOUR_PUBLIC_KEY");
+})();
+
+// Products
+const products = [
+{
+  name: "Stylish Shirt",
+  price: 499,
+  img: "https://i.ibb.co/2Y89qnzQ/IMG-20260320-WA0001.jpg"
+},
+{
+  name: "Trendy Outfit",
+  price: 799,
+  img: "https://i.ibb.co/VpVYRjGj/IMG-20260328-WA0001.jpg"
+}
+];
+
+let cart = [];
+
+// Load products
+function loadProducts(){
+  const container = document.getElementById("products");
+  products.forEach((p,i)=>{
+    container.innerHTML += `
+      <div class="card">
+        <img src="${p.img}">
+        <h3>${p.name}</h3>
+        <p>₹${p.price}</p>
+        <button class="btn" onclick="addToCart(${i})">Add to Cart</button>
+      </div>
+    `;
+  });
+}
+
+// Add to cart
+function addToCart(i){
+  cart.push(products[i]);
+  updateCart();
+}
+
+// Update cart
+function updateCart(){
+  const list = document.getElementById("cartItems");
+  list.innerHTML = "";
+
+  let total = 0;
+
+  cart.forEach((item,index)=>{
+    list.innerHTML += `<li>${item.name} - ₹${item.price}</li>`;
+    total += item.price;
+  });
+
+  document.getElementById("total").innerText = total;
+  document.getElementById("count").innerText = cart.length;
+}
+
+// Toggle cart
+function toggleCart(){
+  document.getElementById("cart").classList.toggle("active");
+}
+
+// Scroll
+function scrollToProducts(){
+  document.getElementById("products").scrollIntoView({behavior:"smooth"});
+}
+
+// Send Order
+function sendOrder(){
+  const name = document.getElementById("name").value;
+  const phone = document.getElementById("phone").value;
+
+  if(!name || !phone){
+    alert("Please fill details");
+    return;
+  }
+
+  let items = cart.map(i => i.name + " ₹" + i.price).join(", ");
+
+  emailjs.send("YOUR_SERVICE_ID","YOUR_TEMPLATE_ID",{
+    customer_name: name,
+    customer_phone: phone,
+    order: items,
+    email: "smobin197@gmail.com"
+  }).then(()=>{
+    alert("Order Sent Successfully!");
+    cart = [];
+    updateCart();
+  });
+}
+
+// Init
+loadProducts();
+</script>
+
+</body>
+</html>
